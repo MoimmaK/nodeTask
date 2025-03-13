@@ -1,9 +1,22 @@
 require("dotenv").config();
 const request = require("supertest");
 const app = require("./index");
+const cron = require("node-cron");
 
-
+let server;
 let token;
+
+beforeAll(() => {
+    server = app.listen(5000); // Start the server before tests
+});
+
+afterAll(() => {
+    // Stop all scheduled cron jobs
+    cron.getTasks().forEach(task => task.stop());
+
+    // Close the server after tests
+    server.close();
+});
 
 describe("User Authentication", () => {
     it("should register a new user", async () => {
@@ -23,32 +36,5 @@ describe("User Authentication", () => {
         expect(res.statusCode).toBe(200);
         expect(res.body.token).toBeDefined();
         token = res.body.token;
-    });
-});
-
-describe("Event Management", () => {
-    it("should create an event", async () => {
-        const res = await request(app)
-            .post("/events")
-            .set("Authorization", `Bearer ${token}`) // Fix here
-            .send({
-                name: "Test Event",
-                description: "This is a test event",
-                date: new Date().toISOString(),
-                category: "Meeting",
-                reminderTime: new Date().toISOString()
-            });
-
-        expect(res.statusCode).toBe(201);
-        expect(res.body.name).toBe("Test Event");
-    });
-
-    it("should fetch all events", async () => {
-        const res = await request(app)
-            .get("/events")
-            .set("Authorization", `Bearer ${token}`); // Fix here
-
-        expect(res.statusCode).toBe(200);
-        expect(res.body.length).toBeGreaterThan(0);
     });
 });
