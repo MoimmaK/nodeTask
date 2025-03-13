@@ -20,3 +20,7 @@ jobs:
 
       - name: Run tests
         run: npm test
+
+      - name: Fix Jest Permissions
+        run: chmod +x node_modules/.bin/jest
+
